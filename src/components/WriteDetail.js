@@ -1,50 +1,33 @@
-import { api } from '../api'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import WriteComments from './WriteComments'
-import axios from 'axios'
 import { Link, useHistory, useParams } from 'react-router-dom'
 import DeleteModal from './DeleteModal'
+import { addComment, bringWrite } from './actions'
+import { useDispatch, useSelector } from 'react-redux'
 
 
 const WriteDetail = () => {
 
 
-    //yazı detayları useState si
-    const [writeDetail, setWriteDetail] = useState({})
-
-    // yorumlar
-    const [comments, setComments] = useState([])
+    const letterDetail = useSelector(state => state.letterDetail)
 
     // destructuring
     /* const { id } = props.match.params */
     const {id} = useParams() // üsttekinin aynısı 
     
     const history = useHistory()
-
+    const dispatch = useDispatch()
 
     // yazılan yorumları apı ye gönderiyoruz, veri tabanına obje içerisindeki isimler ile kayıt olur
-    const handleCommentSubmit = (event, commentBody) => {
+    const handleCommentSubmit = (event, comment) => {
         event.preventDefault();
-
-        api().post(`/posts/${id}/comments`, commentBody)
-            .then(response => { setComments([...comments, response.data]) }) //yorumları dataya ekliyoruz
-            .catch((error) => { console.log(error) })
+        dispatch(addComment(id, comment));
     }
 
-
-    // 1. her bir yazı detayına tıklanınca ıd numarasına göre data bilgileri alınacak
-    // 2. kullanıcı yorumlarını görmek için
+    
+    
     useEffect(() => {
-
-        axios.all([
-            api().get(`/posts/${id}`),
-            api().get(`/posts/${id}/comments`)])
-            .then(responses => {
-                console.log(responses)
-                setWriteDetail(responses[0].data)
-                setComments(responses[1].data)
-            })
-            .catch(error => { console.log(error) })
+            dispatch(bringWrite(id))
     }, [])
 
 
@@ -52,16 +35,16 @@ const WriteDetail = () => {
         <>
             <div className="ui grid">
                 <div className="ui buttons" style={{marginLeft:"450px"}}>
-                    <Link to={`/posts/${writeDetail.id}/edit`} className="ui button blue">Edit</Link>
-                    <DeleteModal writeDetail={writeDetail} push={history.push}/>
+                    <Link to={`/posts/${letterDetail.id}/edit`} className="ui button blue">Edit</Link>
+                    <DeleteModal comment={letterDetail}/>
                 </div>
             </div>
-            <h2 className="ui header">{writeDetail.title}</h2>
-            <p>{writeDetail.content}</p>
+            <h2 className="ui header">{letterDetail.title}</h2>
+            <p>{letterDetail.content}</p>
 
-            <p>{writeDetail.created_at}</p>
+            <p>{letterDetail.created_at}</p>
 
-            <WriteComments comments={comments} handleCommentSubmit={handleCommentSubmit} />
+            <WriteComments comments={letterDetail.comments} handleCommentSubmit={handleCommentSubmit} />
 
         </>
     )

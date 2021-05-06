@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { useHistory, useParams, withRouter } from 'react-router-dom' // history geldi
 import { api } from '../api'
+import { editWrite } from './actions'
 
 const WriteForm = (props) => {
 
@@ -9,6 +11,7 @@ const WriteForm = (props) => {
 
     const {id} = useParams()
     const history = useHistory()
+    const dispatch = useDispatch()
 
     const onInputChange = (event) => {
         setWrite({ ...write, [event.target.name]: event.target.value })
@@ -21,13 +24,7 @@ const WriteForm = (props) => {
         if (props.editWrite?.title) {
             // edit işlemi yapılacak put request 
             console.log("id", id)
-            api()
-                .put(`/posts/${id}`, write)
-                .then((response) => {
-                    console.log(response)
-                    history.push(`/posts/${id}`)
-                })
-                .catch((err) => setErr("You have to fill Header and Content"))
+            dispatch(editWrite(id, write, history.push))
 
         } else {
             // add işlemi yapılacak
@@ -39,8 +36,9 @@ const WriteForm = (props) => {
 
     // propstan gelen yazı
     useEffect(() => {
-        if (props.editWrite?.title && props.editWrite?.content){setWrite(props.editWrite)} 
-    }, [props.editWrite])
+        if (props.write?.title && props.write?.content)
+        {setWrite({ title: props.write.title, content: props.write.content})}; 
+    }, [props.write])
 
 
     return (
